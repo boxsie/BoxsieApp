@@ -1,0 +1,141 @@
+﻿using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using BoxsieApp.Core.Config;
+using Newtonsoft.Json;
+
+namespace BoxsieApp.Core.Storage
+{
+    public static class StorageUtils
+    {
+        public static string GetDefaultUserDataPath(string dirName)
+        {
+            var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? Environment.GetEnvironmentVariable("LocalAppData")
+                : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                    ? $"~/Library/Application Support/"
+                    : $"Home/";
+
+            return $"{StorageUtils.PathCombine(path, dirName)}{Path.DirectorySeparatorChar}";
+        }
+
+        public static string PathCombine(params string[] parts)
+        {
+            var pathSeperator = Path.DirectorySeparatorChar;
+
+            var path = parts[0];
+
+            for (var i = 1; i < parts.Length; i++)
+                path = Path.Combine(path, parts[i]).Replace(pathSeperator == '/' ? '\\' : '/', pathSeperator);
+
+            return path;
+        }
+        
+        public static JsonSerializerSettings GetDefaultSerialiserSettings()
+        {
+            return new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc };
+        }
+
+        public static async Task<string> EncryptTextAsync(string text, string key)
+        {
+            key = PadKey(key);
+
+            var keyBytes = Encoding.UTF8.GetBytes(key);
+
+            using (var aesAlg = Aes.Create())
+            {
+                if (aesAlg == null)
+                    return null;
+                
+                using (var encryptor = aesAlg.CreateEncryptor(keyBytes, aesAlg.IV))
+                {
+                    using (var msEncrypt = new MemoryStream())
+                    {
+                        using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                        {
+                            using (var swEncrypt = new StreamWriter(csEncrypt))
+                            {
+                                await swEncrypt.WriteAsync(text);
+                            }
+                        }
+                        
+                        var decryptedContent = msEncrypt.ToArray();
+
+                        var result = new byte[aesAlg.IV.Length + decryptedContent.Length];
+
+                        Buffer.BlockCopy(aesAlg.IV, 0, result, 0, aesAlg.IV.Length);
+                        Buffer.BlockCopy(decryptedContent, 0, result, aesAlg.IV.Length, decryptedContent.Length);
+
+                        return Convert.ToBase64String(result);
+                    }
+                }
+            }
+        }
+
+        public static async Task<string> DecryptTextAsync(string encryptedText, string key)
+        {
+            key = PadKey(key);
+
+            var fullCipher = Convert.FromBase64String(encryptedText);
+
+            var iv = new byte[16];
+            var cipher = new byte[fullCipher.Length - iv.Length];
+
+            Buffer.BlockCopy(fullCipher, 0, iv, 0, iv.Length);
+            Buffer.BlockCopy(fullCipher, iv.Length, cipher, 0, fullCipher.Length - iv.Length);
+
+            var keyBytes = Encoding.UTF8.GetBytes(key);
+
+            using (var aesAlg = Aes.Create())
+            {
+                if (aesAlg == null)
+                    return null;
+                
+                using (var decryptor = aesAlg.CreateDecryptor(keyBytes, iv))
+                {
+                    using (var msDecrypt = new MemoryStream(cipher))
+                    {
+                        using (var csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                        {
+                            using (var srDecrypt = new StreamReader(csDecrypt))
+                            {
+                                return await srDecrypt.ReadToEndAsync();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static byte[] EncryptSha256(byte[] keyByte, byte[] messageBytes)
+        {
+            using (var hash = new HMACSHA256(keyByte))
+                return hash.ComputeHash(messageBytes);
+        }
+
+        public static string ByteArrayToHexString(byte[] ba)
+        {
+            var hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
+        private static string PadKey(string key)
+        {
+            var keyBase = Cfg.GetConfig<GeneralConfig>().EncryptKeyBase;
+
+            const int bitLen = 32;
+
+            if (key.Length < bitLen)
+                key = $"{key}{keyBase.Substring(0, bitLen - key.Length)}";
+            else if (key.Length > bitLen)
+                key = key.Substring(0, bitLen);
+
+            return key;
+        }
+    }
+}
