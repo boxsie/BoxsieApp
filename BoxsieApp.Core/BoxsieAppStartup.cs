@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using BoxsieApp.Core.Config;
 using BoxsieApp.Core.Config.Contracts;
+using BoxsieApp.Core.Logging;
 using BoxsieApp.Core.Net;
 using BoxsieApp.Core.Repository;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace BoxsieApp.Core
@@ -16,11 +17,18 @@ namespace BoxsieApp.Core
         protected abstract void ConfigureServices(IServiceCollection services);
         protected abstract void Configure(IServiceProvider serviceProvider);
 
-        public IBosieApp Initialise<T>() where T : IBosieApp
+        public static void Start<T, TY>() where T : BoxsieAppStartup, new() where TY : IBoxsieApp
+        {
+            var app = new T().Initialise(typeof(TY));
+
+            Task.Run(app.StartAsync);
+        }
+
+        private IBoxsieApp Initialise(Type appType)
         {
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddSingleton(typeof(IBosieApp), typeof(T));
+            serviceCollection.AddSingleton(typeof(IBoxsieApp), appType);
 
             ConfigureBoxsieServices(serviceCollection);
             ConfigureServices(serviceCollection);
@@ -30,12 +38,12 @@ namespace BoxsieApp.Core
             ConfigureBoxsie(serviceProvider);
             Configure(serviceProvider);
             
-            return serviceProvider.GetService<IBosieApp>();
+            return serviceProvider.GetService<IBoxsieApp>();
         }
         
         private static void ConfigureBoxsieServices(IServiceCollection services)
         {
-            services.AddLogging(builder => { builder.SetMinimumLevel(LogLevel.Trace); });
+            services.AddSingleton<ILog, Log>();
 
             services.AddSingleton<RepositoryService>();
 
@@ -46,7 +54,7 @@ namespace BoxsieApp.Core
 
         private static void ConfigureBoxsie(IServiceProvider serviceProvider)
         {
-            Cfg.InitialiseConfig(serviceProvider.GetServices<IConfig>());
+            Cfg.InitialiseConfig(serviceProvider);
         }
 
         private static void AddConfigs(IServiceCollection services)

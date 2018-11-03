@@ -18,6 +18,25 @@ namespace BoxsieApp.Core.Net
             _client = new HttpClient {Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite)};
         }
 
+        public async Task<long> GetFileSizeAsync(string fileUrl)
+        {
+            try
+            {
+                using (var response = await _client.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+
+                    return response.Content.Headers.ContentLength ?? 0;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            return 0;
+        }
+
         public async Task DownloadAsync(string fileUrl, string filePath, Action<FileDownloadProgress> progressUpdate)
         {
             try
@@ -59,7 +78,6 @@ namespace BoxsieApp.Core.Net
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
             }
         }
 

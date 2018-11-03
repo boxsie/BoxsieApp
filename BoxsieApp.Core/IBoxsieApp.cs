@@ -2,7 +2,7 @@
 
 namespace BoxsieApp.Core
 {
-    public interface IBosieApp
+    public interface IBoxsieApp
     {
         Task StartAsync();
     }

@@ -5,19 +5,19 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using BoxsieApp.Core.Config;
+using BoxsieApp.Core.Logging;
 using BoxsieApp.Core.Storage;
-using NLog;
 
 namespace BoxsieApp.Core.Repository
 {
     public class RepositoryService
     {
-        private readonly ILogger _logger;
+        private readonly ILog _logger;
         private readonly GeneralConfig _generalConfig;
 
         private List<string> _availableTables;
 
-        public RepositoryService(ILogger logger, GeneralConfig generalConfig)
+        public RepositoryService(ILog logger, GeneralConfig generalConfig)
         {
             _logger = logger;
             _generalConfig = generalConfig;
@@ -28,25 +28,25 @@ namespace BoxsieApp.Core.Repository
 
         private void EnsureDbCreated()
         {
-            _logger.Log(LogLevel.Info, $"Looking for database...");
+            _logger.WriteLine($"Looking for database...", LogLvl.Info);
 
-            var dbPath = StorageUtils.PathCombine(_generalConfig.UserConfig.UserDataPath, _generalConfig.DbFilename);
+            var dbPath = Path.Combine(_generalConfig.UserConfig.UserDataPath, _generalConfig.DbFilename);
 
-            _logger.Log(LogLevel.Info, $"Looking for database at {dbPath}");
+            _logger.WriteLine($"Looking for database at {dbPath}", LogLvl.Info);
 
             if (File.Exists(dbPath))
                 return;
 
-            _logger.Log(LogLevel.Info, $"Database not found, creating...");
+            _logger.WriteLine($"Database not found, creating...", LogLvl.Info);
 
             SQLiteConnection.CreateFile(dbPath);
 
-            _logger.Log(LogLevel.Info, $"Database created");
+            _logger.WriteLine($"Database created", LogLvl.Info);
         }
 
         private string GetConnectionString()
         {
-            return $"Data Source={StorageUtils.PathCombine(_generalConfig.UserConfig.UserDataPath, _generalConfig.DbFilename)};";
+            return $"Data Source={Path.Combine(_generalConfig.UserConfig.UserDataPath, _generalConfig.DbFilename)};";
         }
     }
 }

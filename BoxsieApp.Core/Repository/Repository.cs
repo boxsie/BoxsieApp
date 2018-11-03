@@ -9,20 +9,20 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using BoxsieApp.Core.Data;
+using BoxsieApp.Core.Logging;
 using Dapper;
-using NLog;
 
 namespace BoxsieApp.Core.Repository
 {
     public class Repository<T> : IRepository<T> where T : IEntity
     {
-        private readonly ILogger _logger;
+        private readonly ILog _logger;
         private readonly Stopwatch _stopwatch;
 
         private string _connectionString;
         private string _tableName;
 
-        public Repository(ILogger logger)
+        public Repository(ILog logger)
         {
             _logger = logger;
             _stopwatch = new Stopwatch();
@@ -44,7 +44,7 @@ namespace BoxsieApp.Core.Repository
             }
             catch (Exception e)
             {
-                _logger.Log(LogLevel.Warn, e.Message);
+                await _logger.WriteLineAsync(e.Message, LogLvl.Warning);
                 throw;
             }
         }
@@ -65,7 +65,7 @@ namespace BoxsieApp.Core.Repository
             }
             catch (Exception e)
             {
-                _logger.Log(LogLevel.Warn, e.Message);
+                await _logger.WriteLineAsync(e.Message, LogLvl.Warning);
             }
 
             return 0;
@@ -101,7 +101,7 @@ namespace BoxsieApp.Core.Repository
             }
             catch (Exception e)
             {
-                _logger.Log(LogLevel.Warn, e.Message);
+                await _logger.WriteLineAsync(e.Message, LogLvl.Warning);
             }
             
             return new int[0];
@@ -124,7 +124,7 @@ namespace BoxsieApp.Core.Repository
             }
             catch (Exception e)
             {
-                _logger.Log(LogLevel.Warn, e.Message);
+                await _logger.WriteLineAsync(e.Message, LogLvl.Warning);
             }
 
             return default(IEnumerable<T>);
@@ -147,7 +147,7 @@ namespace BoxsieApp.Core.Repository
             }
             catch (Exception e)
             {
-                _logger.Log(LogLevel.Warn, e.Message);
+                await _logger.WriteLineAsync(e.Message, LogLvl.Warning);
             }
 
             return default(T);

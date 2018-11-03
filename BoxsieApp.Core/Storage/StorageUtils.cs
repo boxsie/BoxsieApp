@@ -11,27 +11,56 @@ namespace BoxsieApp.Core.Storage
 {
     public static class StorageUtils
     {
-        public static string GetDefaultUserDataPath(string dirName)
+        public static string CreateProgressBar(double percent, int steps)
         {
-            var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? Environment.GetEnvironmentVariable("LocalAppData")
-                : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                    ? $"~/Library/Application Support/"
-                    : $"Home/";
+            var progress = Math.Floor((steps / 100d) * percent);
+            var bar = "";
 
-            return $"{StorageUtils.PathCombine(path, dirName)}{Path.DirectorySeparatorChar}";
+            for (var o = 0; o < steps; o++)
+            {
+                bar += progress > o
+                    ? '#'
+                    : '.';
+            }
+
+            return $"[{bar}]";
         }
 
-        public static string PathCombine(params string[] parts)
+        public static OS GetPlatform()
         {
-            var pathSeperator = Path.DirectorySeparatorChar;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return OS.Windows;
 
-            var path = parts[0];
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return OS.OSX;
+            
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return OS.Linux;
 
-            for (var i = 1; i < parts.Length; i++)
-                path = Path.Combine(path, parts[i]).Replace(pathSeperator == '/' ? '\\' : '/', pathSeperator);
+            throw new Exception("Operating system not supported");
+        }
 
-            return path;
+        public static string GetDefaultUserDataPath(string dirName)
+        {
+            var platform = GetPlatform();
+            var path = "";
+
+            switch (platform)
+            {
+                case OS.Windows:
+                    path = Environment.GetEnvironmentVariable("LocalAppData");
+                    break;
+                case OS.OSX:
+                    path = $"~/Library/Application Support/";
+                    break;
+                case OS.Linux:
+                    path = $"Home/";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return $"{Path.Combine(path, dirName)}{Path.DirectorySeparatorChar}";
         }
         
         public static JsonSerializerSettings GetDefaultSerialiserSettings()

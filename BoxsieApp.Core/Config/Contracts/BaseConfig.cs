@@ -20,7 +20,7 @@ namespace BoxsieApp.Core.Config.Contracts
 
         public async Task LoadUserConfigAsync(string appDataPath)
         {
-            var filePath = StorageUtils.PathCombine(appDataPath, UserConfigFilename);
+            var filePath = Path.Combine(appDataPath, UserConfigFilename);
 
             using (var js = new JsonStore<T>())
             {
@@ -38,7 +38,7 @@ namespace BoxsieApp.Core.Config.Contracts
 
         public async Task LoadEncryptedUserConfigAsync(string appDataPath, string key)
         {
-            var filePath = StorageUtils.PathCombine(appDataPath, UserConfigFilename);
+            var filePath = Path.Combine(appDataPath, UserConfigFilename);
 
             using (var js = new EncryptedJsonStore<T>(key))
             {
