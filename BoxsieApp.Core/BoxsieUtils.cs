@@ -5,11 +5,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using BoxsieApp.Core.Config;
+using BoxsieApp.Core.Storage;
 using Newtonsoft.Json;
 
-namespace BoxsieApp.Core.Storage
+namespace BoxsieApp.Core
 {
-    public static class StorageUtils
+    public static class BoxsieUtils
     {
         public static string CreateProgressBar(double percent, int steps)
         {

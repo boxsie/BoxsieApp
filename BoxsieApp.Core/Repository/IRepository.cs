@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 
 namespace BoxsieApp.Core.Repository
 {
-    public interface IRepository<in T>
+    public interface IRepository<T>
     {
-        Task CreateTable(string connectionString, string tableName);
+        Task CreateTable(string tableName);
 
         Task<int> CreateAsync(T entity);
         Task<IEnumerable<int>> CreateAsync(IEnumerable<T> entities);
+        Task<IEnumerable<T>> GetWhereAsync(List<WhereClause> where);
     }
 }

@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using BoxsieApp.Core.Config;
 using BoxsieApp.Core.Data;
 using BoxsieApp.Core.Logging;
 using Dapper;
@@ -17,20 +19,20 @@ namespace BoxsieApp.Core.Repository
     public class Repository<T> : IRepository<T> where T : IEntity
     {
         private readonly ILog _logger;
+        private readonly string _connectionString;
         private readonly Stopwatch _stopwatch;
 
-        private string _connectionString;
         private string _tableName;
 
-        public Repository(ILog logger)
+        public Repository(ILog logger, GeneralConfig config)
         {
             _logger = logger;
+            _connectionString = $"Data Source={Path.Combine(config.UserConfig.UserDataPath, config.DbFilename)};";
             _stopwatch = new Stopwatch();
         }
 
-        public async Task CreateTable(string connectionString, string tableName)
+        public async Task CreateTable(string tableName)
         {
-            _connectionString = connectionString;
             _tableName = tableName;
 
             try
@@ -105,6 +107,37 @@ namespace BoxsieApp.Core.Repository
             }
             
             return new int[0];
+        }
+
+        public async Task<IEnumerable<T>> GetWhereAsync(List<WhereClause> whereClauses)
+        {
+            var whereSql = new StringBuilder("WHERE ");
+
+            foreach (var w in whereClauses)
+            {
+                whereSql.Append($"{w.PropertyName} {w.Op} @Val");
+                whereSql.Append($" {w.AndOr} ");
+            }
+            
+            var sql = $"SELECT * FROM {_tableName} {whereSql}";
+
+            try
+            {
+                using (var con = new SQLiteConnection(_connectionString))
+                {
+                    await con.OpenAsync();
+
+                    var result = (await con.QueryAsync(sql, new { Val = whereClauses.Select(x => x.Val)})).Select(Mapper.Map<T>);
+
+                    return result;
+                }
+            }
+            catch (Exception e)
+            {
+                await _logger.WriteLineAsync(e.Message, LogLvl.Warning);
+            }
+
+            return new List<T>();
         }
 
         public async Task<IEnumerable<T>> GetLastEntriesAsync(int limit = 0)

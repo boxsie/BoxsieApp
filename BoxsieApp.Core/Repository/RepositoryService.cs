@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BoxsieApp.Core.Config;
 using BoxsieApp.Core.Logging;
-using BoxsieApp.Core.Storage;
+using BoxsieApp.Core;
 
 namespace BoxsieApp.Core.Repository
 {
@@ -15,18 +15,13 @@ namespace BoxsieApp.Core.Repository
         private readonly ILog _logger;
         private readonly GeneralConfig _generalConfig;
 
-        private List<string> _availableTables;
-
         public RepositoryService(ILog logger, GeneralConfig generalConfig)
         {
             _logger = logger;
             _generalConfig = generalConfig;
-            _availableTables = new List<string>();
-
-            EnsureDbCreated();
         }
 
-        private void EnsureDbCreated()
+        public void EnsureDbCreated()
         {
             _logger.WriteLine($"Looking for database...", LogLvl.Info);
 
@@ -42,11 +37,6 @@ namespace BoxsieApp.Core.Repository
             SQLiteConnection.CreateFile(dbPath);
 
             _logger.WriteLine($"Database created", LogLvl.Info);
-        }
-
-        private string GetConnectionString()
-        {
-            return $"Data Source={Path.Combine(_generalConfig.UserConfig.UserDataPath, _generalConfig.DbFilename)};";
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using BoxsieApp.Core.Config.Contracts;
-using BoxsieApp.Core.Storage;
+using BoxsieApp.Core;
 
 namespace BoxsieApp.Core.Config
 {
@@ -17,7 +17,7 @@ namespace BoxsieApp.Core.Config
 
         private static string GetDefaultUserDataPath()
         {
-            return StorageUtils.GetDefaultUserDataPath(Cfg.GetConfig<GeneralConfig>().AppName);
+            return BoxsieUtils.GetDefaultUserDataPath(Cfg.GetConfig<GeneralConfig>().AppName);
         }
     }
 }

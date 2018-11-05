@@ -37,7 +37,9 @@ namespace BoxsieApp.Core
 
             ConfigureBoxsie(serviceProvider);
             Configure(serviceProvider);
-            
+
+            serviceProvider.GetService<RepositoryService>().EnsureDbCreated();
+
             return serviceProvider.GetService<IBoxsieApp>();
         }
         

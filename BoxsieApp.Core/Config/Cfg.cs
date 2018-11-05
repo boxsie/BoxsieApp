@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using BoxsieApp.Core.Config.Contracts;
 using BoxsieApp.Core.Logging;
-using BoxsieApp.Core.Storage;
+using BoxsieApp.Core;
 using BoxsieApp.Core.Storage.Stores;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using BoxsieApp.Core.Config;
-using BoxsieApp.Core.Storage;
+using BoxsieApp.Core;
 
 namespace BoxsieApp.Core.Logging
 {

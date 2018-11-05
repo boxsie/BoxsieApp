@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using BoxsieApp.Core.Storage;
+using BoxsieApp.Core;
 using BoxsieApp.Core.Storage.Stores;
 using Newtonsoft.Json;
 

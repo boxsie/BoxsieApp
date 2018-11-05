@@ -10,7 +10,7 @@ namespace BoxsieApp.Core.Storage.Stores
 
         public JsonStore(JsonSerializerSettings settings = null)
         {
-            _settings = settings ?? StorageUtils.GetDefaultSerialiserSettings();
+            _settings = settings ?? BoxsieUtils.GetDefaultSerialiserSettings();
         }
 
         public async Task WriteAsync(string filePath, T content)

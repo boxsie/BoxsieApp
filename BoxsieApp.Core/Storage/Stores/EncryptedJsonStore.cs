@@ -12,7 +12,7 @@ namespace BoxsieApp.Core.Storage.Stores
         public EncryptedJsonStore(string key, JsonSerializerSettings settings = null)
         {
             _key = key;
-            _settings = settings ?? StorageUtils.GetDefaultSerialiserSettings();
+            _settings = settings ?? BoxsieUtils.GetDefaultSerialiserSettings();
         }
 
         public async Task WriteAsync(string filePath, T content)

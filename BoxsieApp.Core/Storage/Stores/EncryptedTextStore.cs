@@ -13,7 +13,7 @@ namespace BoxsieApp.Core.Storage.Stores
 
         public override async Task WriteAsync(string filePath, string content)
         {
-            var encryptedText = await StorageUtils.EncryptTextAsync(content, _key);
+            var encryptedText = await BoxsieUtils.EncryptTextAsync(content, _key);
 
             await base.WriteAsync(filePath, encryptedText);
         }
@@ -22,7 +22,7 @@ namespace BoxsieApp.Core.Storage.Stores
         {
             var encryptedText = await base.ReadAsync(filePath);
 
-            return await StorageUtils.DecryptTextAsync(encryptedText, _key);
+            return await BoxsieUtils.DecryptTextAsync(encryptedText, _key);
         }
 
         public override void Dispose()
